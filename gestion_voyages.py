@@ -5,19 +5,19 @@ from database import connect_db
 class GestionVoyages:
     def __init__(self):
         self.root = tk.Toplevel()
-        self.root.title("Gestion des Voyages & Pannes")
+        self.root.title("Gestion des Voyages")
         self.root.geometry("700x400")
 
-        self.tree = ttk.Treeview(self.root, columns=("id_voyage","id_trajet","matricule","date","heure","etat"), show="headings")
+        # Treeview
+        self.tree = ttk.Treeview(self.root, columns=("id_voyage","id_trajet","matricule","date","heure"), show="headings")
         self.tree.heading("id_voyage", text="ID Voyage")
         self.tree.heading("id_trajet", text="ID Trajet")
         self.tree.heading("matricule", text="Matricule Bus")
         self.tree.heading("date", text="Date Voyage")
         self.tree.heading("heure", text="Heure")
-        self.tree.heading("etat", text="État (OK/Panne)")
-
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
 
+        # Boutons
         btn_frame = tk.Frame(self.root)
         btn_frame.pack(pady=5)
 
@@ -35,7 +35,7 @@ class GestionVoyages:
         try:
             conn = connect_db()
             cursor = conn.cursor()
-            cursor.execute("SELECT id_voyage,id_trajet,matricule_vehicule,date_voyage,heure,etat FROM voyage")
+            cursor.execute("SELECT id_voyage, id_trajet, matricule_vehicule, date_voyage, heure FROM voyage")
             rows = cursor.fetchall()
             for r in rows:
                 self.tree.insert("", "end", values=r)
@@ -48,13 +48,14 @@ class GestionVoyages:
         matricule = simpledialog.askstring("Ajouter Voyage", "Matricule Bus:")
         date_voyage = simpledialog.askstring("Ajouter Voyage", "Date (YYYY-MM-DD):")
         heure = simpledialog.askstring("Ajouter Voyage", "Heure (HH:MM):")
-        etat = simpledialog.askstring("Ajouter Voyage", "État (OK/Panne):")
-        if id_trajet and matricule and date_voyage and heure and etat:
+        if id_trajet and matricule and date_voyage and heure:
             try:
                 conn = connect_db()
                 cursor = conn.cursor()
-                cursor.execute("INSERT INTO voyage (id_trajet, matricule_vehicule, date_voyage, heure, etat) VALUES (%s,%s,%s,%s,%s)",
-                               (id_trajet, matricule, date_voyage, heure, etat))
+                cursor.execute(
+                    "INSERT INTO voyage (id_trajet, matricule_vehicule, date_voyage, heure) VALUES (%s,%s,%s,%s)",
+                    (id_trajet, matricule, date_voyage, heure)
+                )
                 conn.commit()
                 conn.close()
                 messagebox.showinfo("Succès", "Voyage ajouté !")
@@ -70,12 +71,19 @@ class GestionVoyages:
         item = self.tree.item(selected[0])
         id_voyage = item["values"][0]
 
-        new_etat = simpledialog.askstring("Modifier Voyage", "État (OK/Panne):", initialvalue=item["values"][5])
-        if new_etat:
+        new_id_trajet = simpledialog.askinteger("Modifier Voyage", "ID Trajet:", initialvalue=item["values"][1])
+        new_matricule = simpledialog.askstring("Modifier Voyage", "Matricule Bus:", initialvalue=item["values"][2])
+        new_date = simpledialog.askstring("Modifier Voyage", "Date (YYYY-MM-DD):", initialvalue=item["values"][3])
+        new_heure = simpledialog.askstring("Modifier Voyage", "Heure (HH:MM):", initialvalue=item["values"][4])
+
+        if new_id_trajet and new_matricule and new_date and new_heure:
             try:
                 conn = connect_db()
                 cursor = conn.cursor()
-                cursor.execute("UPDATE voyage SET etat=%s WHERE id_voyage=%s", (new_etat, id_voyage))
+                cursor.execute(
+                    "UPDATE voyage SET id_trajet=%s, matricule_vehicule=%s, date_voyage=%s, heure=%s WHERE id_voyage=%s",
+                    (new_id_trajet, new_matricule, new_date, new_heure, id_voyage)
+                )
                 conn.commit()
                 conn.close()
                 messagebox.showinfo("Succès", "Voyage modifié !")
