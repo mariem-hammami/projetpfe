@@ -1,126 +1,74 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-from datetime import datetime
-import random
-
-# ----- Fenêtres secondaires simulées -----
 from gestion_lignes import GestionLignes
 from gestion_bus import GestionBus
 from gestion_stations import GestionStations
 from gestion_voyages import GestionVoyages
 from dashboard_monitoring import DashboardMonitoringPRO
 
-# ----- Dashboard Monitoring simulé -----
-class DashboardMonitoringSRTB:
-    def __init__(self):
-        self.root = tk.Toplevel()
-        self.root.title("Monitoring Temps Réel - SRTB")
-        self.root.geometry("750x500")
-        self.root.configure(bg="white")
-
-        tk.Label(self.root, text="Monitoring Passagers – Temps Réel",
-                 font=("Arial", 16, "bold"), bg="white", fg="#228B22").pack(pady=10)
-
-        # Total Passagers
-        self.total_label = tk.Label(self.root, text="Total Passagers: 0 (A/D: 0/0)",
-                                    font=("Arial", 14, "bold"), bg="white")
-        self.total_label.pack(pady=5)
-
-        # Tableau Passagers par station
-        columns = ("station", "ascendant", "descendant")
-        self.tree = ttk.Treeview(self.root, columns=columns, show="headings")
-        for col in columns:
-            self.tree.heading(col, text=col.capitalize())
-        self.tree.pack(fill="both", expand=True, padx=10, pady=10)
-
-        # Alertes
-        self.alertes_text = tk.Text(self.root, height=5, bg="#F5F5F5")
-        self.alertes_text.pack(fill="x", padx=10, pady=5)
-        self.alertes_text.insert("end", "Alertes: Aucune pour le moment...\n")
-        self.alertes_text.config(state="disabled")
-
-        # Rafraîchir
-        tk.Button(self.root, text="Rafraîchir", bg="#228B22", fg="white",
-                  command=self.update_dashboard).pack(pady=5)
-
-        # Stations simulées
-        self.stations = ["Corniche", "Manzel Abed Rahmen", "Tunis"]
-        self.data = {s: {"asc": 0, "desc": 0} for s in self.stations}
-        self.total_asc = 0
-        self.total_desc = 0
-
-        self.update_dashboard()
-        self.root.mainloop()
-
-    def update_dashboard(self):
-        for s in self.stations:
-            new_asc = random.randint(0, 5)
-            new_desc = random.randint(0, 3)
-            self.data[s]["asc"] += new_asc
-            self.data[s]["desc"] += new_desc
-            self.total_asc += new_asc
-            self.total_desc += new_desc
-
-        total = self.total_asc - self.total_desc
-        self.total_label.config(text=f"Total Passagers: {total} (A/D: {self.total_asc}/{self.total_desc})")
-
-        # Tableau
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        for s in self.stations:
-            self.tree.insert("", "end", values=(s, self.data[s]["asc"], self.data[s]["desc"]))
-
-        # Alertes aléatoires
-        self.alertes_text.config(state="normal")
-        self.alertes_text.delete("1.0", "end")
-        if random.choice([True, False]):
-            self.alertes_text.insert("end",
-                                     f"[{datetime.now().strftime('%H:%M:%S')}] Bus en retard à {random.choice(self.stations)}\n")
-        else:
-            self.alertes_text.insert("end", "Aucune alerte pour le moment...\n")
-        self.alertes_text.config(state="disabled")
-
-        # Auto-refresh
-        self.root.after(10000, self.update_dashboard)
-
-
 class DashboardAdmin:
     def __init__(self, username):
         self.root = tk.Tk()
         self.root.title(f"Dashboard Admin - {username}")
-        self.root.geometry("550x500")
-        self.root.configure(bg="black")  # fond noir comme login
+        self.root.geometry("700x500")
+        self.root.configure(bg="white")
 
         # ----- Header -----
-        header = tk.Frame(self.root, bg="#FF8C00", height=60)
+        header = tk.Frame(self.root, bg="#EBCEB0", height=70)
         header.pack(fill="x")
-        tk.Label(header, text=f"Bienvenue {username}", font=("Arial", 18, "bold"),
-                 bg="#FF8C00", fg="black").pack(pady=15)
+        tk.Label(
+            header,
+            text=f"Bienvenue {username}",
+            font=("Arial", 20, "bold"),
+            bg="#EBCEB0",
+            fg="white"
+        ).pack(pady=20)
 
-        # ----- Frame des boutons -----
-        btn_frame = tk.Frame(self.root, bg="black")
-        btn_frame.pack(pady=20)
+        # ----- Container cartes / boutons -----
+        card_frame = tk.Frame(self.root, bg="white")
+        card_frame.pack(pady=20, padx=20, fill="both", expand=True)
 
-        # Style bouton commun
-        button_style = {"width": 30, "bg": "#FF8C00", "fg": "black", 
-                        "font": ("Arial", 12, "bold"), "bd": 0, 
-                        "activebackground": "#FFA500", "activeforeground": "black"}
+        card_style = {
+            "width": 25,
+            "height": 3,
+            "font": ("Arial", 12, "bold"),
+            "bg": "#CC7000",
+            "fg": "white",
+            "bd": 0,
+            "activebackground": "#D96F00",
+            "activeforeground": "white"
+        }
 
-        tk.Button(btn_frame, text="Gestion des Lignes", command=self.open_lignes, **button_style).pack(pady=5)
-        tk.Button(btn_frame, text="Gestion des Bus", command=self.open_bus, **button_style).pack(pady=5)
-        tk.Button(btn_frame, text="Gestion des Stations", command=self.open_stations, **button_style).pack(pady=5)
-        tk.Button(btn_frame, text="Gestion des Voyages", command=self.open_voyages, **button_style).pack(pady=5)
-        tk.Button(btn_frame, text="Monitoring Temps Réel", command=self.open_monitoring, **button_style).pack(pady=5)
-        
-        # ----- Déconnexion -----
-        # Déconnexion en bas
+        tk.Button(card_frame, text="Gestion des Lignes", command=self.open_lignes, **card_style).grid(row=0, column=0, padx=10, pady=10)
+        tk.Button(card_frame, text="Gestion des Bus", command=self.open_bus, **card_style).grid(row=0, column=1, padx=10, pady=10)
+        tk.Button(card_frame, text="Gestion des Stations", command=self.open_stations, **card_style).grid(row=1, column=0, padx=10, pady=10)
+        tk.Button(card_frame, text="Gestion des Voyages", command=self.open_voyages, **card_style).grid(row=1, column=1, padx=10, pady=10)
+        tk.Button(card_frame, text="Monitoring Temps Réel", command=self.open_monitoring, **card_style).grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+        card_frame.grid_columnconfigure(0, weight=1)
+        card_frame.grid_columnconfigure(1, weight=1)
+
+        # ----- Déconnexion (flèche moderne à droite) -----
         deco_frame = tk.Frame(self.root, bg="white")
-        deco_frame.pack(side="bottom", fill="x", pady=10)
+        deco_frame.pack(side="bottom", fill="x", pady=15, padx=20)
 
-        tk.Button(deco_frame, text="Déconnexion", command=self.root.destroy,
-          bg="gray", fg="white", font=("Arial", 12, "bold")).pack(padx=10, pady=5)
+        logout_btn = tk.Button(
+            deco_frame,
+            text="⮞",  # flèche moderne
+            command=self.logout,
+            bg="#D32F2F",  # cadre rouge
+            fg="white",
+            font=("Arial", 16, "bold"),
+            width=3,
+            height=1,
+            bd=0,
+            activebackground="#B71C1C",
+            activeforeground="white"
+        )
+        logout_btn.pack(side="right")
+
         self.root.mainloop()
 
+    # ----- Fonctions ouverture -----
     def open_lignes(self):
         GestionLignes()
 
@@ -136,4 +84,8 @@ class DashboardAdmin:
     def open_monitoring(self):
         DashboardMonitoringPRO()
 
-    
+    # ----- Déconnexion -----
+    def logout(self):
+        self.root.destroy()
+        from login import LoginWindow
+        LoginWindow()

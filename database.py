@@ -2,10 +2,11 @@ import mysql.connector
 
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="transport_db"  
+        host="server680404.ddns.net",
+        port=3368,
+        user="user_srtb",
+        password="SRTB!2026@",
+        database="transport_db"
     )
 
 def verify_login(username, password):

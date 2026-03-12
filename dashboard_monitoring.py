@@ -8,24 +8,46 @@ class DashboardMonitoringPRO:
         self.root = tk.Toplevel()
         self.root.title("Dashboard Monitoring SRTB - Temps Réel")
         self.root.geometry("950x600")
-        self.root.config(bg="black")
+        self.root.config(bg="white")  # fond principal en blanc
 
         # ----- Header -----
-        header = tk.Frame(self.root, bg="#FF8C00", height=60)  # orange SRTB
+        header = tk.Frame(self.root, bg="#E07B00", height=60)  # orange sombre
         header.pack(fill="x")
-        tk.Label(header, text="Monitoring Passagers – SRTB",
-                 bg="#FF8C00", fg="black", font=("Arial", 18, "bold")).pack(pady=15)
+
+        tk.Label(header,
+                 text="Monitoring Passagers – SRTB",
+                 bg="#E07B00",
+                 fg="black",
+                 font=("Arial", 18, "bold")).pack(side="left", padx=10, pady=15)
+
+        # ----- Bouton Retour -----
+        tk.Button(header,
+                  text="Retour",
+                  bg="white",
+                  fg="black",
+                  font=("Arial", 12, "bold"),
+                  command=self.retour).pack(side="right", padx=10, pady=10)
 
         # ----- Total Passagers -----
-        self.total_label = tk.Label(self.root, text="Total Passagers: 0 (A/D: 0/0)",font=("Arial", 14, "bold"), bg="black", fg="#FF8C00")
+        self.total_label = tk.Label(self.root,
+                                    text="Total Passagers: 0 (A/D: 0/0)",
+                                    font=("Arial", 14, "bold"),
+                                    bg="white",        # fond blanc
+                                    fg="#E07B00")      # texte orange sombre
         self.total_label.pack(pady=10)
 
         # ----- Treeview Lignes → Stations -----
         columns = ("ascendant", "descendant")
         style = ttk.Style()
         style.theme_use("clam")
-        style.configure("Treeview", background="black", foreground="white", fieldbackground="black", font=("Arial", 12))
-        style.map("Treeview", background=[("selected", "#FF8C00")], foreground=[("selected", "black")])
+        style.configure("Treeview",
+                        background="white",    # fond tableau blanc
+                        foreground="black",    # texte noir
+                        fieldbackground="white",
+                        font=("Arial", 12))
+        style.map("Treeview",
+                  background=[("selected", "#E07B00")],
+                  foreground=[("selected", "black")])
 
         self.tree = ttk.Treeview(self.root, columns=columns)
         self.tree.heading("#0", text="Ligne / Station", anchor="w")
@@ -37,18 +59,25 @@ class DashboardMonitoringPRO:
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
 
         # ----- Alertes -----
-        self.alertes_text = tk.Text(self.root, height=5, bg="#FFF5F5", fg="red", font=("Arial", 12, "bold"))
+        self.alertes_text = tk.Text(self.root, height=5,
+                                    bg="#FFF5F5", fg="red",
+                                    font=("Arial", 12, "bold"))
         self.alertes_text.pack(fill="x", padx=10, pady=5)
         self.alertes_text.config(state="disabled")
 
         # ----- Bouton Rafraîchir -----
-        tk.Button(self.root, text="Rafraîchir", bg="#FF8C00", fg="black",font=("Arial", 12, "bold"), command=self.update_dashboard).pack(pady=5)
+        tk.Button(self.root,
+                  text="Rafraîchir",
+                  bg="#E07B00",
+                  fg="black",
+                  font=("Arial", 12, "bold"),
+                  command=self.update_dashboard).pack(pady=5)
 
         # ----- Lignes et Stations -----
         self.lignes = {
             "Corniche": ["Corniche Centre", "La Plage", "Port"],
-            "Menzel Abderrahmen": ["Menzel Centre", "Zone Industrielle", "Hôpital"],
-            "Tunis": ["Bizerte Gare", "Mateur", "Tunis Station"]
+            "Ras Jebal": ["Menzel Centre", "Zone Industrielle", "Hôpital"],
+            "Tunis": ["Bizerte Gare", "Nozha", "Tunis Station"]
         }
 
         # Données simulées
@@ -66,11 +95,13 @@ class DashboardMonitoringPRO:
             self.ligne_ids[ligne] = self.tree.insert("", "end", text=ligne, open=True, tags=("ligne",))
 
         # Tag couleur lignes
-        self.tree.tag_configure("ligne", foreground="#FF8C00", font=("Arial", 13, "bold"))
+        self.tree.tag_configure("ligne", foreground="#E07B00", font=("Arial", 13, "bold"))
 
+        # ----- Lancer le dashboard -----
         self.update_dashboard()
         self.root.mainloop()
 
+    # ----- Mise à jour Dashboard -----
     def update_dashboard(self):
         self.total_asc = 0
         self.total_desc = 0
@@ -94,10 +125,13 @@ class DashboardMonitoringPRO:
 
         # Ajouter stations sous chaque ligne
         for (ligne, station), values in self.data.items():
-            self.tree.insert(self.ligne_ids[ligne], "end", text=station,values=(values["asc"], values["desc"]),tags=("station",))
+            self.tree.insert(self.ligne_ids[ligne], "end",
+                             text=station,
+                             values=(values["asc"], values["desc"]),
+                             tags=("station",))
 
         # Tag couleur stations
-        self.tree.tag_configure("station", foreground="white", font=("Arial", 12))
+        self.tree.tag_configure("station", foreground="black", font=("Arial", 12))  # texte noir
 
         # Alertes
         self.alertes_text.config(state="normal")
@@ -113,4 +147,10 @@ class DashboardMonitoringPRO:
         self.alertes_text.config(state="disabled")
 
         # Refresh auto toutes les 10 secondes
-        self.root.after(10000, self.update_dashboard)
+        self.after_id = self.root.after(10000, self.update_dashboard)
+
+    # ----- Retour -----
+    def retour(self):
+        if hasattr(self, "after_id"):
+            self.root.after_cancel(self.after_id)
+        self.root.destroy()

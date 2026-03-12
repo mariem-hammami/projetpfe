@@ -6,9 +6,10 @@ import mysql.connector
 
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
+        host="server680404.ddns.net",
+        user="user_srtb",
+        port=3368,
+        password="SRTB!2026@",
         database="transport_db"
     )
 
@@ -22,14 +23,14 @@ class ChatbotPassager:
         self.root = tk.Tk()
         self.root.title("Chatbot Passager SRTB")
         self.root.geometry("450x450")
-        self.root.configure(bg="black")
+        self.root.configure(bg="white")
 
         # titre
         tk.Label(
             self.root,
             text="Chatbot Passager SRTB",
             font=("Arial", 16, "bold"),
-            bg="black",
+            bg="white",
             fg="#FF8C00"
         ).pack(pady=10)
 
@@ -37,7 +38,7 @@ class ChatbotPassager:
         self.chat_text = tk.Text(
             self.root,
             state="disabled",
-            bg="black",
+            bg="white",
             fg="white",
             font=("Arial", 12)
         )
@@ -46,9 +47,9 @@ class ChatbotPassager:
         # champ message
         self.entry = tk.Entry(
             self.root,
-            bg="black",
-            fg="yellow",
-            insertbackground="yellow",
+            bg="white",
+            fg="black",
+            insertbackground="black",
             font=("Arial", 12)
         )
         self.entry.pack(fill="x", padx=10, pady=5)
@@ -60,7 +61,7 @@ class ChatbotPassager:
             self.root,
             text="Envoyer",
             bg="#FF8C00",
-            fg="black",
+            fg="white",
             font=("Arial", 12, "bold"),
             command=self.send_message
         ).pack(pady=5)
@@ -90,8 +91,8 @@ class ChatbotPassager:
 
         self.chat_text.see("end")
 
-        self.chat_text.tag_config("user", foreground="yellow")
-        self.chat_text.tag_config("bot", foreground="white")
+        self.chat_text.tag_config("user", foreground="black")
+        self.chat_text.tag_config("bot", foreground="black")
 
     # ---------- get lignes + stations ----------
 
