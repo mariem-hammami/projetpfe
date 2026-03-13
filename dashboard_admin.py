@@ -1,74 +1,114 @@
 import tkinter as tk
+from PIL import Image, ImageTk, ImageFilter
+
 from gestion_lignes import GestionLignes
 from gestion_bus import GestionBus
 from gestion_stations import GestionStations
 from gestion_voyages import GestionVoyages
 from dashboard_monitoring import DashboardMonitoringPRO
 
+
 class DashboardAdmin:
+
     def __init__(self, username):
+
         self.root = tk.Tk()
         self.root.title(f"Dashboard Admin - {username}")
         self.root.geometry("700x500")
-        self.root.configure(bg="white")
+        self.root.resizable(False, False)
 
-        # ----- Header -----
-        header = tk.Frame(self.root, bg="#EBCEB0", height=70)
-        header.pack(fill="x")
-        tk.Label(
-            header,
+        # ----- Charger et flouter l'image -----
+        image = Image.open(r"C:\Users\MSI\Pictures\IMG_20260313_205909.jpg")
+        image = image.resize((700, 500))
+        image = image.filter(ImageFilter.GaussianBlur(radius=5))
+        self.bg_image = ImageTk.PhotoImage(image)
+
+        # ----- Canvas -----
+        self.canvas = tk.Canvas(self.root, width=700, height=500, highlightthickness=0)
+        self.canvas.pack(fill="both", expand=True)
+        self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
+
+        # ----- Texte bienvenue -----
+        self.canvas.create_text(
+            350, 50,
             text=f"Bienvenue {username}",
-            font=("Arial", 20, "bold"),
-            bg="#EBCEB0",
-            fg="white"
-        ).pack(pady=20)
+            font=("Arial", 22, "bold"),
+            fill="white"
+        )
 
-        # ----- Container cartes / boutons -----
-        card_frame = tk.Frame(self.root, bg="white")
-        card_frame.pack(pady=20, padx=20, fill="both", expand=True)
+        # ----- Boutons style image -----
+        btn_lignes = self.create_card_button("🔗", "Gestion des Lignes", self.open_lignes)
+        btn_bus = self.create_card_button("🚌", "Gestion des Bus", self.open_bus)
+        btn_stations = self.create_card_button("📍", "Gestion des Stations", self.open_stations)
+        btn_voyages = self.create_card_button("🗺", "Gestion des Voyages", self.open_voyages)
+        btn_monitoring = self.create_card_button("🎯", "Monitoring Temps Réel", self.open_monitoring)
 
-        card_style = {
-            "width": 25,
-            "height": 3,
-            "font": ("Arial", 12, "bold"),
-            "bg": "#CC7000",
-            "fg": "white",
-            "bd": 0,
-            "activebackground": "#D96F00",
-            "activeforeground": "white"
-        }
+        # ----- Placement -----
+        self.canvas.create_window(170, 140, window=btn_lignes)
+        self.canvas.create_window(530, 140, window=btn_bus)
 
-        tk.Button(card_frame, text="Gestion des Lignes", command=self.open_lignes, **card_style).grid(row=0, column=0, padx=10, pady=10)
-        tk.Button(card_frame, text="Gestion des Bus", command=self.open_bus, **card_style).grid(row=0, column=1, padx=10, pady=10)
-        tk.Button(card_frame, text="Gestion des Stations", command=self.open_stations, **card_style).grid(row=1, column=0, padx=10, pady=10)
-        tk.Button(card_frame, text="Gestion des Voyages", command=self.open_voyages, **card_style).grid(row=1, column=1, padx=10, pady=10)
-        tk.Button(card_frame, text="Monitoring Temps Réel", command=self.open_monitoring, **card_style).grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+        self.canvas.create_window(170, 240, window=btn_stations)
+        self.canvas.create_window(530, 240, window=btn_voyages)
 
-        card_frame.grid_columnconfigure(0, weight=1)
-        card_frame.grid_columnconfigure(1, weight=1)
+        self.canvas.create_window(350, 340, window=btn_monitoring)
 
-        # ----- Déconnexion (flèche moderne à droite) -----
-        deco_frame = tk.Frame(self.root, bg="white")
-        deco_frame.pack(side="bottom", fill="x", pady=15, padx=20)
-
-        logout_btn = tk.Button(
-            deco_frame,
-            text="⮞",  # flèche moderne
+        # ----- Bouton déconnexion -----
+        self.btn_logout = tk.Button(
+            self.root,
+            text="➤",
             command=self.logout,
-            bg="#D32F2F",  # cadre rouge
+            bg="#D32F2F",
             fg="white",
-            font=("Arial", 16, "bold"),
+            font=("Arial", 18, "bold"),
             width=3,
             height=1,
-            bd=0,
-            activebackground="#B71C1C",
-            activeforeground="white"
+            bd=0
         )
-        logout_btn.pack(side="right")
+
+        self.canvas.create_window(650, 450, window=self.btn_logout)
 
         self.root.mainloop()
 
-    # ----- Fonctions ouverture -----
+    # ---------- Bouton style carte ----------
+    def create_card_button(self, icon, text, command):
+
+        frame = tk.Frame(
+            self.root,
+            bg="white",
+            bd=3,
+            relief="ridge"
+        )
+
+        icon_label = tk.Label(
+            frame,
+            text=icon,
+            font=("Arial", 18),
+            bg="#FFE0C2",
+            width=3
+        )
+
+        text_label = tk.Label(
+            frame,
+            text=text,
+            font=("Arial", 12, "bold"),
+            bg="#E57C1F",
+            fg="white",
+            padx=20,
+            pady=10
+        )
+
+        icon_label.pack(side="left", fill="y")
+        text_label.pack(side="left", fill="both", expand=True)
+
+        # rendre le bouton cliquable
+        frame.bind("<Button-1>", lambda e: command())
+        icon_label.bind("<Button-1>", lambda e: command())
+        text_label.bind("<Button-1>", lambda e: command())
+
+        return frame
+
+    # ---------- Fonctions ouverture ----------
+
     def open_lignes(self):
         GestionLignes()
 
@@ -84,7 +124,8 @@ class DashboardAdmin:
     def open_monitoring(self):
         DashboardMonitoringPRO()
 
-    # ----- Déconnexion -----
+    # ---------- Déconnexion ----------
+
     def logout(self):
         self.root.destroy()
         from login import LoginWindow

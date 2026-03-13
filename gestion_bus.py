@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox
 from database import connect_db
 
 class GestionBus:
@@ -8,7 +8,7 @@ class GestionBus:
         self.root.title("Gestion des Bus")
         self.root.geometry("700x400")
 
-        # ----- Treeview pour afficher les bus -----
+        # ----- Table pour afficher les bus -----
         self.tree = ttk.Treeview(
             self.root,
             columns=("matricule", "type", "modele", "etat"),
@@ -18,18 +18,15 @@ class GestionBus:
         self.tree.heading("type", text="Type")
         self.tree.heading("modele", text="Modèle")
         self.tree.heading("etat", text="Etat")
-
         self.tree.column("matricule", width=120)
         self.tree.column("type", width=150)
         self.tree.column("modele", width=150)
         self.tree.column("etat", width=100)
-
         self.tree.pack(fill="both", expand=True, padx=10, pady=10)
 
         # ----- Boutons -----
         btn_frame = tk.Frame(self.root)
         btn_frame.pack(pady=5)
-
         tk.Button(btn_frame, text="Ajouter Bus", command=self.ajouter_bus).pack(side="left", padx=5)
         tk.Button(btn_frame, text="Modifier Bus", command=self.modifier_bus).pack(side="left", padx=5)
         tk.Button(btn_frame, text="Supprimer Bus", command=self.supprimer_bus).pack(side="left", padx=5)
@@ -37,8 +34,8 @@ class GestionBus:
         tk.Button(btn_frame, text="Retour", command=self.retour).pack(side="left", padx=5)
 
         self.load_bus()
-        self.root.mainloop()
 
+    # ----- Charger les bus -----
     def load_bus(self):
         for row in self.tree.get_children():
             self.tree.delete(row)
@@ -46,46 +43,66 @@ class GestionBus:
         try:
             conn = connect_db()
             cursor = conn.cursor()
-
             cursor.execute("SELECT matricule_vehicule, type_vehicule, modele_vehicule, etat FROM vehicule")
             rows = cursor.fetchall()
-
             for r in rows:
                 self.tree.insert("", "end", values=r)
-
             conn.close()
-
         except Exception as e:
             messagebox.showerror("Erreur DB", str(e))
 
+    # ----- Ajouter Bus -----
     def ajouter_bus(self):
-        matricule = simpledialog.askstring("Ajouter Bus", "Matricule:")
-        type_bus = simpledialog.askstring("Ajouter Bus", "Type de véhicule:")
-        modele = simpledialog.askstring("Ajouter Bus", "Modèle:")
-        etat = simpledialog.askstring("Ajouter Bus", "Etat (fonctionnel/panne):", initialvalue="fonctionnel")
+        win = tk.Toplevel(self.root)
+        win.title("Ajouter Bus")
+        win.geometry("300x300")
 
-        if matricule and type_bus and modele and etat:
-            try:
-                conn = connect_db()
-                cursor = conn.cursor()
+        tk.Label(win, text="Matricule").pack(pady=5)
+        entry_matricule = tk.Entry(win)
+        entry_matricule.pack()
 
-                cursor.execute(
-                    "INSERT INTO vehicule (matricule_vehicule, type_vehicule, modele_vehicule, etat) VALUES (%s,%s,%s,%s)",
-                    (matricule, type_bus, modele, etat)
-                )
+        tk.Label(win, text="Type véhicule").pack(pady=5)
+        entry_type = tk.Entry(win)
+        entry_type.pack()
 
-                conn.commit()
-                conn.close()
+        tk.Label(win, text="Modèle").pack(pady=5)
+        entry_modele = tk.Entry(win)
+        entry_modele.pack()
 
-                messagebox.showinfo("Succès", "Bus ajouté !")
-                self.load_bus()
+        tk.Label(win, text="Etat").pack(pady=5)
+        etat_var = tk.StringVar(value="fonctionnel")
+        tk.Radiobutton(win, text="Fonctionnel", variable=etat_var, value="fonctionnel").pack()
+        tk.Radiobutton(win, text="En panne", variable=etat_var, value="en panne").pack()
 
-            except Exception as e:
-                messagebox.showerror("Erreur DB", str(e))
+        def save_bus():
+            matricule = entry_matricule.get()
+            type_bus = entry_type.get()
+            modele = entry_modele.get()
+            etat = etat_var.get()
 
+            if matricule and type_bus and modele and etat:
+                try:
+                    conn = connect_db()
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "INSERT INTO vehicule (matricule_vehicule, type_vehicule, modele_vehicule, etat) VALUES (%s,%s,%s,%s)",
+                        (matricule, type_bus, modele, etat)
+                    )
+                    conn.commit()
+                    conn.close()
+                    messagebox.showinfo("Succès", "Bus ajouté !")
+                    win.destroy()
+                    self.load_bus()
+                except Exception as e:
+                    messagebox.showerror("Erreur DB", str(e))
+            else:
+                messagebox.showwarning("Champs manquants", "Veuillez remplir tous les champs")
+
+        tk.Button(win, text="Enregistrer", command=save_bus).pack(pady=15)
+
+    # ----- Modifier Bus -----
     def modifier_bus(self):
         selected = self.tree.selection()
-
         if not selected:
             messagebox.showwarning("Sélection", "Veuillez sélectionner un bus")
             return
@@ -93,32 +110,49 @@ class GestionBus:
         item = self.tree.item(selected[0])
         matricule = item["values"][0]
 
-        new_type = simpledialog.askstring("Modifier Bus", "Type:", initialvalue=item["values"][1])
-        new_modele = simpledialog.askstring("Modifier Bus", "Modèle:", initialvalue=item["values"][2])
-        new_etat = simpledialog.askstring("Modifier Bus", "Etat (fonctionnel/panne):", initialvalue=item["values"][3])
+        win = tk.Toplevel(self.root)
+        win.title("Modifier Bus")
+        win.geometry("300x300")
 
-        if new_type and new_modele and new_etat:
+        tk.Label(win, text="Type véhicule").pack(pady=5)
+        entry_type = tk.Entry(win)
+        entry_type.insert(0, item["values"][1])
+        entry_type.pack()
+
+        tk.Label(win, text="Modèle").pack(pady=5)
+        entry_modele = tk.Entry(win)
+        entry_modele.insert(0, item["values"][2])
+        entry_modele.pack()
+
+        tk.Label(win, text="Etat").pack(pady=5)
+        etat_var = tk.StringVar(value=item["values"][3])
+        tk.Radiobutton(win, text="Fonctionnel", variable=etat_var, value="fonctionnel").pack()
+        tk.Radiobutton(win, text="En panne", variable=etat_var, value="en panne").pack()
+
+        def update_bus():
+            new_type = entry_type.get()
+            new_modele = entry_modele.get()
+            new_etat = etat_var.get()
             try:
                 conn = connect_db()
                 cursor = conn.cursor()
-
                 cursor.execute(
                     "UPDATE vehicule SET type_vehicule=%s, modele_vehicule=%s, etat=%s WHERE matricule_vehicule=%s",
                     (new_type, new_modele, new_etat, matricule)
                 )
-
                 conn.commit()
                 conn.close()
-
                 messagebox.showinfo("Succès", "Bus modifié !")
+                win.destroy()
                 self.load_bus()
-
             except Exception as e:
                 messagebox.showerror("Erreur DB", str(e))
 
+        tk.Button(win, text="Enregistrer", command=update_bus).pack(pady=15)
+
+    # ----- Supprimer Bus -----
     def supprimer_bus(self):
         selected = self.tree.selection()
-
         if not selected:
             messagebox.showwarning("Sélection", "Veuillez sélectionner un bus")
             return
@@ -126,24 +160,19 @@ class GestionBus:
         item = self.tree.item(selected[0])
         matricule = item["values"][0]
 
-        confirm = messagebox.askyesno("Supprimer Bus", f"Voulez-vous vraiment supprimer le bus {matricule} ?")
-
+        confirm = messagebox.askyesno("Supprimer Bus", f"Voulez-vous supprimer le bus {matricule} ?")
         if confirm:
             try:
                 conn = connect_db()
                 cursor = conn.cursor()
-
                 cursor.execute("DELETE FROM vehicule WHERE matricule_vehicule=%s", (matricule,))
-
                 conn.commit()
                 conn.close()
-
                 messagebox.showinfo("Succès", "Bus supprimé !")
                 self.load_bus()
-
             except Exception as e:
                 messagebox.showerror("Erreur DB", str(e))
 
+    # ----- Retour -----
     def retour(self):
-        # Fermer la fenêtre et retourner à la page précédente
         self.root.destroy()
