@@ -36,21 +36,23 @@ class DashboardAdmin:
             fill="white"
         )
 
-        # ----- Boutons style image -----
+        # ----- Boutons -----
         btn_lignes = self.create_card_button("🔗", "Gestion des Lignes", self.open_lignes)
         btn_bus = self.create_card_button("🚌", "Gestion des Bus", self.open_bus)
         btn_stations = self.create_card_button("📍", "Gestion des Stations", self.open_stations)
         btn_voyages = self.create_card_button("🗺", "Gestion des Voyages", self.open_voyages)
         btn_monitoring = self.create_card_button("🎯", "Monitoring Temps Réel", self.open_monitoring)
 
-        # ----- Placement -----
+        # ----- Placement des boutons -----
+
+        # colonne gauche
         self.canvas.create_window(170, 140, window=btn_lignes)
-        self.canvas.create_window(530, 140, window=btn_bus)
-
         self.canvas.create_window(170, 240, window=btn_stations)
-        self.canvas.create_window(530, 240, window=btn_voyages)
+        self.canvas.create_window(170, 340, window=btn_monitoring)
 
-        self.canvas.create_window(350, 340, window=btn_monitoring)
+        # colonne droite
+        self.canvas.create_window(530, 140, window=btn_bus)
+        self.canvas.create_window(530, 240, window=btn_voyages)
 
         # ----- Bouton déconnexion -----
         self.btn_logout = tk.Button(
@@ -84,7 +86,8 @@ class DashboardAdmin:
             text=icon,
             font=("Arial", 18),
             bg="#FFE0C2",
-            width=3
+            width=3,
+            height=2
         )
 
         text_label = tk.Label(
@@ -93,14 +96,14 @@ class DashboardAdmin:
             font=("Arial", 12, "bold"),
             bg="#E57C1F",
             fg="white",
-            padx=20,
-            pady=10
+            width=18,
+            height=2
         )
 
         icon_label.pack(side="left", fill="y")
         text_label.pack(side="left", fill="both", expand=True)
 
-        # rendre le bouton cliquable
+        # rendre cliquable
         frame.bind("<Button-1>", lambda e: command())
         icon_label.bind("<Button-1>", lambda e: command())
         text_label.bind("<Button-1>", lambda e: command())
